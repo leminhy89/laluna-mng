@@ -12,7 +12,7 @@
   function routeConfig($stateProvider) {
     $stateProvider
         .state('statictis', {
-          url: '/revenue',
+          url: '/statictis',
           templateUrl: 'app/pages/statictis/statictis.html',
           title: 'Statictis',
           sidebarMeta: {

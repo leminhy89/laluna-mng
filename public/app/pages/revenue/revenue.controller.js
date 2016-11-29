@@ -33,9 +33,6 @@
       angular.extend(toastrConfig, defaultConfig);
     });
 
-
-
-
     if(email !== undefined && email !== null ) {
       var firebaseAuthToken = localStorage.getItem("firebaseAuthToken");
       var uid = localStorage.getItem("uid");
@@ -48,8 +45,8 @@
       $scope.add = function(rev) {
         var value = rev.value;
         var date = rev.date.getFullYear() +
-                        ((rev.date.getMonth() + 1) >= 10 ? "/" : "/0") + (rev.date.getMonth() + 1) +
-                        ((rev.date.getDate() + 1) >= 10 ? "/" : "/0") + rev.date.getDate();
+                        ((rev.date.getMonth() + 1) > 10 ? "/" : "/0") + (rev.date.getMonth() + 1) +
+                        ((rev.date.getDate() + 1) > 10 ? "/" : "/0") + rev.date.getDate();
         //check exists
         if( $filter('filter')($scope.DB, { date: date }).length !== 0 ) {
           //open toast
@@ -200,20 +197,30 @@
                           $scope.valueUpdate = rev.value;
 
                           $scope.confirmUpdate = function() {
-                            // Success callback
-                            rev.date = $scope.dateUpdate.getFullYear() +
-                                              (($scope.dateUpdate.getMonth() + 1) >= 10 ? "/" : "/0") + ($scope.dateUpdate.getMonth() + 1) +
-                                              (($scope.dateUpdate.getDate() + 1) >= 10 ? "/" : "/0") + $scope.dateUpdate.getDate();
-                            rev.value = $scope.valueUpdate;
-                            rev.updated_by = localStorage.getItem("uid");
-                            rev.updated_at = Date.now();
-
-                            db.$save(rev);
-                            closeDialog();
+                            //check exists
+                            var dateToString = $scope.dateUpdate.getFullYear() +
+                                           (($scope.dateUpdate.getMonth() + 1) > 10 ? "/" : "/0") + ($scope.dateUpdate.getMonth() + 1) +
+                                           (($scope.dateUpdate.getDate() + 1) > 10 ? "/" : "/0") + $scope.dateUpdate.getDate();
                             
-                            //open toast
-                            openedToasts.push(toastr["info"]('Updated revenue successfully...', 'Laluna message', {}));
-                            $scope.optionsStr = "toastr.info(\'Updated revenue successfully...\', \'Laluna message', " + JSON.stringify({}, null, 2) + ")";
+                            if( $filter('filter')(db, { date: dateToString }).length === 0 
+                                || ($filter('filter')(db, { date: dateToString }).length === 1 && dateToString === rev.date)) {
+                              rev.date = dateToString;
+                              rev.value = $scope.valueUpdate;
+                              rev.updated_by = localStorage.getItem("uid");
+                              rev.updated_at = Date.now();
+  
+                              db.$save(rev);
+                              closeDialog();
+                              
+                              //open toast
+                              openedToasts.push(toastr["info"]('Updated revenue successfully...', 'Laluna message', {}));
+                              $scope.optionsStr = "toastr.info(\'Updated revenue successfully...\', \'Laluna message', " + JSON.stringify({}, null, 2) + ")";
+                            }
+                            else {
+                              //open toast
+                              openedToasts.push(toastr["warning"]('Date is exits! Please check agian...', 'Laluna message', {}));
+                              $scope.optionsStr = "toastr.warning(\'Date is exits! Please check agian...\', \'Laluna message', " + JSON.stringify({}, null, 2) + ")";
+                            }
                           }
                         },
                         plain: true
@@ -229,28 +236,5 @@
     } else {
       window.location.href = "login";
     }
-
-
-    // $scope.showGroup = function(user) {
-    //   if(user.group && $scope.groups.length) {
-    //     var selected = $filter('filter')($scope.groups, {id: user.group});
-    //     return selected.length ? selected[0].text : 'Not set';
-    //   } else return 'Not set'
-    // };
-
-    // $scope.showStatus = function(user) {
-    //   var selected = [];
-    //   if(user.status) {
-    //     selected = $filter('filter')($scope.statuses, {value: user.status});
-    //   }
-    //   return selected.length ? selected[0].text : 'Not set';
-    // };
-
-
-    // $scope.removeUser = function(index) {
-    //   $scope.users.splice(index, 1);
-    // };
-
-
   }
 })();
